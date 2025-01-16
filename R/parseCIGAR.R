@@ -4,7 +4,7 @@
 #' match, insertions, deletions, etc.) along with their corresponding counts.
 #' This function provides a structured breakdown of these operations for further analysis, such as visualizing alignments or processing genomic data.
 #'
-#' @param cigar (Mandatory) A character string representing the CIGAR string (e.g., "5M1I3M"). The string must follow standard CIGAR notation.
+#' @param cigar (Mandatory) A character string representing the CIGAR string (e.g., "5M1I3M")
 #' @return A data frame with two columns:
 #' \describe{
 #'   \item{count}{A numeric vector containing the count of bases for each operation.}
@@ -20,7 +20,7 @@
 #' # Example of parsing a CIGAR string:
 #' parseCIGAR("5M1I3M")
 #'
-#' @export parseCIGAR             ###### THINK MORE IF KEEPING IT INTERNAL INSTEAD
+#' @export parseCIGAR
 #'
 
 
