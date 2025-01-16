@@ -1,0 +1,312 @@
+---
+title: "A brief introduction to BamLiner"
+author:
+- name: "Roberto Amarie"
+  affiliation: Università degli studi di Milano & Politecnico di Milano, Italy
+  email: roberto.amarie@mail.polimi.it    or    roberto.amarie@studenti.unimi.it  
+date: "`r Sys.Date()`"    
+output: BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{BamLiner}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+@unsure if including these first 2 chunks
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE, 
+  comment = "#>")
+```
+
+```{r setup}
+library(BamLiner)
+```
+
+------------------------------------------------------------------------
+
+```{r style, echo = FALSE, results = 'asis'}
+library(BiocStyle)
+```
+
+```{r, echo = FALSE}
+library(knitr)
+```
+
+*Notes*:
+
+# Introduction
+
+blablablablabla blablablablabla blablablablabla blablablablabla
+blablablablabla blablablablabla blablablablabla blablablablabla
+blablablablabla
+
+------------------------------------------------------------------------
+
+# Installing and loading the package {#installation}
+
+## Installation
+
+### Bioconductor
+
+**BamLiner** requires several CRAN and Bioconductor R packages to be
+installed. Dependencies are usually handled automatically, when
+installing the package using the following commands:
+
+```         
+install.packages("BiocManager")
+BiocManager::install("BamLiner")
+```
+
+[NOTE: Ignore the first line if you already have installed the
+`r CRANpkg("BiocManager")`.]
+
+### Manual installation
+
+In the unlikely case that a manual installation is required, e.g., if
+you do not install **BamLiner** via Bioconductor (which is highly
+recommended), before installing **BamLiner** make sure the following
+packages are installed:
+
+<!-- CRAN packages: -->
+
+<!-- `r CRANpkg("Matrix")`, `r CRANpkg("quadprog")`, `r CRANpkg("plyr")`, -->
+
+<!-- `r CRANpkg("ggplot2")`, `r CRANpkg("ggseqlogo")`, -->
+
+<!-- `r CRANpkg("gridExtra")` -->
+
+Bioconductor packages:
+
+`r Biocpkg("GenomicRanges")`, `r Biocpkg("Biostrings")`,
+`r Biocpkg("BiocGenerics")`, `r Biocpkg("S4Vectors")`,
+`r Biocpkg("BSgenome.Hsapiens.UCSC.hg38")`,
+`r Biocpkg("GenomicFeatures")`, `r Biocpkg("GenomeInfoDb")`, \#### maybe
+these last 2? have to check
+
+CRAN packages can be installed from R using the following command:
+
+```         
+install.packages("<package_name>")
+```
+
+Bioconductor packages can be installed from R using the following
+command:
+
+```         
+BiocManager::install("<package_name>")
+```
+
+Sometimes, it may also be useful to update Bioconductor:
+
+```         
+BiocManager::install()
+```
+
+Finally, the manual installation of **BamLiner** can, for example, be
+done from the command line ...
+
+```         
+R CMD INSTALL BamLiner_<version>.tar.gz
+```
+
+... or the newest version can directly be installed from GitHub using
+the CRAN package `r CRANpkg("devtools")`:
+
+```         
+library(devtools)
+install_github("rmpiro/BamLiner")       #######well maybe I have to remove this part if I don't get to push it on my github
+```
+
+## Loading the package
+
+After installation, loading the package is simple:
+
+```{r, results='hide', message=FALSE}
+library(BamLiner)
+```
+
+------------------------------------------------------------------------
+
+# Input data {#input}
+
+**BamLiner** works with SAM/BAM files resulting from any genome
+sequencing experiment, except for those including SA:Z tagged chimeric
+reads. For detailed information on this format (including an example),
+see <https://samtools.github.io/hts-specs/SAMv1.pdf>.
+
+Specifically, it requires that the files should be pre-loaded in R in
+the form of a `r Rpackage("GAlignments")` object.
+
+Additionally, **BamLiner** requires the genomic sequence (in form of a
+`r Rpackage("BSgenome")` object) to determine the reference sequences on
+which reads should map to.
+
+## Bam/Sam file {#input-file}
+
+Here show how to import the GAlignment object and which mcols() to
+include
+
+**Example workflow:**
+
+```{r}
+# load example signatures for breast cancer genomes from Nik-Zainal et al
+# (PMID: 22608084) in the format produced by pmsignature (PMID: 26630308)
+pmsigdata <- system.file("extdata",
+          "Nik-Zainal_PMID_22608084-pmsignature-Param.Rdata", 
+          package="decompTumor2Sig")
+load(pmsigdata)
+ 
+# extract the signatures from the pmsignature 'Param' object
+signatures <- getSignaturesFromEstParam(Param)
+signatures[1]
+```
+
+**Example workflow:**
+
+```{r}
+# load the reference genome and the transcript annotation database
+refGenome <- BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19
+transcriptAnno <-
+           TxDb.Hsapiens.UCSC.hg19.knownGene::TxDb.Hsapiens.UCSC.hg19.knownGene
+
+# take the six breast cancer genomes from Nik-Zainal et al (PMID: 22608084) 
+gfile <- system.file("extdata",
+                     "Nik-Zainal_PMID_22608084-VCF-convertedfromMPF.vcf.gz",
+                     package="decompTumor2Sig")
+
+# read the cancer genomes in VCF format
+genomes <- readGenomesFromVCF(gfile, numBases=5, type="Shiraishi",
+                              trDir=TRUE, refGenome=refGenome,
+                              transcriptAnno=transcriptAnno, verbose=FALSE)
+length(genomes)
+genomes[1:2]
+```
+
+**Example workflow:**
+
+```{r}
+# load the reference genome and the transcript annotation database
+refGenome <- BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19
+transcriptAnno <-
+           TxDb.Hsapiens.UCSC.hg19.knownGene::TxDb.Hsapiens.UCSC.hg19.knownGene
+
+# take the six breast cancer genomes from Nik-Zainal et al (PMID: 22608084) 
+gfile <- system.file("extdata", "Nik-Zainal_PMID_22608084-MPF.txt.gz", 
+                     package="decompTumor2Sig")
+
+# read the cancer genomes in MPF format
+genomes <- readGenomesFromMPF(gfile, numBases=5, type="Shiraishi",
+                              trDir=TRUE, refGenome=refGenome,
+                              transcriptAnno=transcriptAnno, verbose=FALSE)
+```
+
+### Verifying the signature format
+
+For certain applications it may be necessary to construct signatures or
+convert them from other kind of data. To do so, each signature must be
+either a numeric *vector* of probabilities which sum up to 1 (for
+Alexandrov-type signatures) or a *matrix* or *data.frame* with six
+numeric columns, every row of which sums up to 1 (for Shiraishi-type
+signatures).
+
+A set of signatures is then simply a *list* of such signatures.
+
+To verify whether a signature set has a format that can be used with
+**decompTumor2Sig** the package provides the following set of functions.
+Since the mutation frequencies in genomes are specified in exactly the
+same way, these functions can be used for both signatures and genomes:
+
+-   **isAlexandrovSet()**: Verify whether a list object (set of
+    signatures or genomes) is compatible with the Alexandrov model.
+-   **isShiraishiSet()**: Verify whether a list object (set of
+    signatures or genomes) is compatible with the Shiraishi model.
+-   **isSignatureSet()**: Verify whether a list object (set of
+    signatures or genomes) is compatible with either the Alexandrov or
+    the Shiraishi model.
+-   **sameSignatureFormat()**: Verify whether two list objects (two sets
+    of signatures or genomes) contain signatures/genomes of the same
+    format.
+
+Examples:
+
+```{r}
+isAlexandrovSet(sign_a)
+isSignatureSet(sign_a)
+isShiraishiSet(sign_s)
+isSignatureSet(sign_s)
+sameSignatureFormat(sign_a, sign_s)
+```
+
+------------------------------------------------------------------------
+
+# Workflow {#workflow}
+
+(*Note*: The following examples are for illustrative purpose only and
+need not be biologically meaningful.)
+
+Once both the tumor genome(s) and the given mutational signatures have
+been read (see above), the contribution of the given signatures to the
+somatic mutations in individual tumors can be determined using the
+following workflow.
+
+In the following, we assume to have the signatures in a list object
+named *signatures* and the mutation frequencies of the tumor genome(s)
+in another list object named *genomes*.
+
+**Important note**: it is imperative that the mutation frequencies
+represented by both *signatures* and *genomes* have been computed with
+the same characteristics. That is, if the *signatures* refer to
+sequences of 5 nucleotides/bases (with the mutated base at the center),
+then also the *genomes* must have been read for 5 bases. If the
+*signatures* have been produced taking the transcription direction into
+account, then also the *genomes* must have been read taking the
+transcription direction into account, and so on.
+
+### Example: input data
+
+As a simple example, load a set of 15 Shiraishi-type signatures (object
+*signatures*) provided with this package. These signatures were obtained
+with the package `r Rpackage("pmsignature")` from a set of 435 tumor
+genomes with at least 100 somatic mutations from ten different tumor
+entities (data from Alexandrov et al. Nature 500:415-421, 2013; for the
+analysis, see our papers mentioned in Section 1.1):
+
+```{r}
+# load the 15 Shiraishi signatures obtained from 
+# 435 tumor genomes from Alexandrov et al.
+sfile <- system.file("extdata",
+              "Alexandrov_PMID_23945592_435_tumors-pmsignature-15sig.Rdata", 
+              package="decompTumor2Sig")
+load(sfile)
+length(signatures)
+signatures[1]
+```
+
+This loads an object *signatures* with 15 Shiraishi signatures for
+mutated subsequences of length 5 (five nucleotides with the mutated base
+at the center) and taking transcription direction into account.
+
+Now read the tumor genomes (object *genomes*) provided with this
+package, as described in Section 3.2.1:
+
+```{r}
+# load the reference genome and the transcript annotation database
+refGenome <- BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19
+transcriptAnno <-
+           TxDb.Hsapiens.UCSC.hg19.knownGene::TxDb.Hsapiens.UCSC.hg19.knownGene
+
+# take six breast cancer genomes from Nik-Zainal et al (PMID: 22608084) 
+gfile <- system.file("extdata",
+                     "Nik-Zainal_PMID_22608084-VCF-convertedfromMPF.vcf.gz", 
+                     package="decompTumor2Sig")
+
+# read the cancer genomes in VCF format
+genomes <- readGenomesFromVCF(gfile, numBases=5, type="Shiraishi",
+                              trDir=TRUE, refGenome=refGenome,
+                              transcriptAnno=transcriptAnno, verbose=FALSE)
+```
