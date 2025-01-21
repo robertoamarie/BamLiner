@@ -1,9 +1,9 @@
 #' Parse a CIGAR string into its constituent operations and counts
 #'
-#' `parseCIGAR()` This function takes a CIGAR string (which describes how a sequence aligns to a reference) and splits it into individual operations (such as
-#' match, insertions, deletions, etc.) along with their corresponding counts.
+#' `.parseCIGAR()` takes a CIGAR string and splits it into individual operations (such as match, insertions, deletions, etc.) along with their corresponding counts.
 #' This function provides a structured breakdown of these operations for further analysis, such as visualizing alignments or processing genomic data.
 #'
+#' @usage .parseCIGAR(cigar)
 #' @param cigar (Mandatory) A character string representing the CIGAR string (e.g., "5M1I3M")
 #' @return A data frame with two columns:
 #' \describe{
@@ -18,14 +18,12 @@
 #'
 #' @examples
 #' # Example of parsing a CIGAR string:
-#' parseCIGAR("5M1I3M")
+#' BamLiner:::.parseCIGAR("5M1I3M")
+#
 #'
-#' @export parseCIGAR
-#'
 
 
-parseCIGAR <- function(cigar) {
-
+.parseCIGAR <- function(cigar) {
   # parsing cigar string
   operations <- strsplit(cigar, "(?<=\\D)(?=\\d)", perl = TRUE)[[1]]
 

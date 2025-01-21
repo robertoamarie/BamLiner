@@ -15,19 +15,10 @@ editor_options:
     wrap: 72
 ---
 
-@unsure if including these first 2 chunks
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE, 
-  comment = "#>")
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
-
-```{r setup}
-library(BamLiner)
-```
-
-------------------------------------------------------------------------
 
 ```{r style, echo = FALSE, results = 'asis'}
 library(BiocStyle)
@@ -37,13 +28,16 @@ library(BiocStyle)
 library(knitr)
 ```
 
-*Notes*:
-
 # Introduction
 
-blablablablabla blablablablabla blablablablabla blablablablabla
-blablablablabla blablablablabla blablablablabla blablablablabla
-blablablablabla
+The R package **BamLiner** provides a function that extracts the primary
+alignment of a desired read and enables the visualization of its
+alignment along its reference sequence, as an useful useful quality
+control inspection tool. As to achieve this, the package also includes
+some internal functions for managing CIGAR operations, determining the
+reference sequence of the full read, as well as the recomputing the
+consumed read and reference sequences upon accounting for the CIGAR
+operations.
 
 ------------------------------------------------------------------------
 
@@ -72,27 +66,11 @@ you do not install **BamLiner** via Bioconductor (which is highly
 recommended), before installing **BamLiner** make sure the following
 packages are installed:
 
-<!-- CRAN packages: -->
-
-<!-- `r CRANpkg("Matrix")`, `r CRANpkg("quadprog")`, `r CRANpkg("plyr")`, -->
-
-<!-- `r CRANpkg("ggplot2")`, `r CRANpkg("ggseqlogo")`, -->
-
-<!-- `r CRANpkg("gridExtra")` -->
-
 Bioconductor packages:
 
 `r Biocpkg("GenomicRanges")`, `r Biocpkg("Biostrings")`,
-`r Biocpkg("BiocGenerics")`, `r Biocpkg("S4Vectors")`,
-`r Biocpkg("BSgenome.Hsapiens.UCSC.hg38")`,
-`r Biocpkg("GenomicFeatures")`, `r Biocpkg("GenomeInfoDb")`, \#### maybe
-these last 2? have to check
-
-CRAN packages can be installed from R using the following command:
-
-```         
-install.packages("<package_name>")
-```
+`r Biocpkg("IRanges")`, `r Biocpkg("S4Vectors")`,
+`r Biocpkg("BSgenome.Hsapiens.UCSC.hg38")`,`r Biocpkg("BSgenome.Hsapiens.UCSC.hg38")`
 
 Bioconductor packages can be installed from R using the following
 command:
@@ -119,7 +97,7 @@ the CRAN package `r CRANpkg("devtools")`:
 
 ```         
 library(devtools)
-install_github("rmpiro/BamLiner")       #######well maybe I have to remove this part if I don't get to push it on my github
+install_github("robertoamarie/BamLiner")       #######well maybe I have to remove this part if I don't get to push it on my github
 ```
 
 ## Loading the package
@@ -136,177 +114,146 @@ library(BamLiner)
 
 **BamLiner** works with SAM/BAM files resulting from any genome
 sequencing experiment, except for those including SA:Z tagged chimeric
-reads. For detailed information on this format (including an example),
-see <https://samtools.github.io/hts-specs/SAMv1.pdf>.
+reads that will be accounted for in future versions of the tool. For
+detailed information on this format (including an example), see
+<https://samtools.github.io/hts-specs/SAMv1.pdf>.
 
 Specifically, it requires that the files should be pre-loaded in R in
-the form of a `r Rpackage("GAlignments")` object.
+the form of a `r Rpackage("GAlignments")` object that includes sequence,
+flag and qname information as metadata columns.
 
 Additionally, **BamLiner** requires the genomic sequence (in form of a
 `r Rpackage("BSgenome")` object) to determine the reference sequences on
 which reads should map to.
 
-## Bam/Sam file {#input-file}
-
-Here show how to import the GAlignment object and which mcols() to
-include
-
-**Example workflow:**
-
-```{r}
-# load example signatures for breast cancer genomes from Nik-Zainal et al
-# (PMID: 22608084) in the format produced by pmsignature (PMID: 26630308)
-pmsigdata <- system.file("extdata",
-          "Nik-Zainal_PMID_22608084-pmsignature-Param.Rdata", 
-          package="decompTumor2Sig")
-load(pmsigdata)
- 
-# extract the signatures from the pmsignature 'Param' object
-signatures <- getSignaturesFromEstParam(Param)
-signatures[1]
-```
-
-**Example workflow:**
-
-```{r}
-# load the reference genome and the transcript annotation database
-refGenome <- BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19
-transcriptAnno <-
-           TxDb.Hsapiens.UCSC.hg19.knownGene::TxDb.Hsapiens.UCSC.hg19.knownGene
-
-# take the six breast cancer genomes from Nik-Zainal et al (PMID: 22608084) 
-gfile <- system.file("extdata",
-                     "Nik-Zainal_PMID_22608084-VCF-convertedfromMPF.vcf.gz",
-                     package="decompTumor2Sig")
-
-# read the cancer genomes in VCF format
-genomes <- readGenomesFromVCF(gfile, numBases=5, type="Shiraishi",
-                              trDir=TRUE, refGenome=refGenome,
-                              transcriptAnno=transcriptAnno, verbose=FALSE)
-length(genomes)
-genomes[1:2]
-```
-
-**Example workflow:**
-
-```{r}
-# load the reference genome and the transcript annotation database
-refGenome <- BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19
-transcriptAnno <-
-           TxDb.Hsapiens.UCSC.hg19.knownGene::TxDb.Hsapiens.UCSC.hg19.knownGene
-
-# take the six breast cancer genomes from Nik-Zainal et al (PMID: 22608084) 
-gfile <- system.file("extdata", "Nik-Zainal_PMID_22608084-MPF.txt.gz", 
-                     package="decompTumor2Sig")
-
-# read the cancer genomes in MPF format
-genomes <- readGenomesFromMPF(gfile, numBases=5, type="Shiraishi",
-                              trDir=TRUE, refGenome=refGenome,
-                              transcriptAnno=transcriptAnno, verbose=FALSE)
-```
-
-### Verifying the signature format
-
-For certain applications it may be necessary to construct signatures or
-convert them from other kind of data. To do so, each signature must be
-either a numeric *vector* of probabilities which sum up to 1 (for
-Alexandrov-type signatures) or a *matrix* or *data.frame* with six
-numeric columns, every row of which sums up to 1 (for Shiraishi-type
-signatures).
-
-A set of signatures is then simply a *list* of such signatures.
-
-To verify whether a signature set has a format that can be used with
-**decompTumor2Sig** the package provides the following set of functions.
-Since the mutation frequencies in genomes are specified in exactly the
-same way, these functions can be used for both signatures and genomes:
-
--   **isAlexandrovSet()**: Verify whether a list object (set of
-    signatures or genomes) is compatible with the Alexandrov model.
--   **isShiraishiSet()**: Verify whether a list object (set of
-    signatures or genomes) is compatible with the Shiraishi model.
--   **isSignatureSet()**: Verify whether a list object (set of
-    signatures or genomes) is compatible with either the Alexandrov or
-    the Shiraishi model.
--   **sameSignatureFormat()**: Verify whether two list objects (two sets
-    of signatures or genomes) contain signatures/genomes of the same
-    format.
-
-Examples:
-
-```{r}
-isAlexandrovSet(sign_a)
-isSignatureSet(sign_a)
-isShiraishiSet(sign_s)
-isSignatureSet(sign_s)
-sameSignatureFormat(sign_a, sign_s)
-```
-
 ------------------------------------------------------------------------
 
 # Workflow {#workflow}
 
-(*Note*: The following examples are for illustrative purpose only and
-need not be biologically meaningful.)
+Once both the reference genome and the bam file have been loaded in the
+environment in the required format specified in the above section, the
+alignment of a given read to its reference sequence can be simply
+determined using the *extract_read_by_qname_and_show_alignment*
+function. The user can also choose if the softclipped portions of the
+read will be highlighted by a red coloring of the print. Additionally, a
+data.frame containing all the information needed for the visualization
+can be outputted rather than the printed outcome.
 
-Once both the tumor genome(s) and the given mutational signatures have
-been read (see above), the contribution of the given signatures to the
-somatic mutations in individual tumors can be determined using the
-following workflow.
+**Example workflows:**
 
-In the following, we assume to have the signatures in a list object
-named *signatures* and the mutation frequencies of the tumor genome(s)
-in another list object named *genomes*.
-
-**Important note**: it is imperative that the mutation frequencies
-represented by both *signatures* and *genomes* have been computed with
-the same characteristics. That is, if the *signatures* refer to
-sequences of 5 nucleotides/bases (with the mutated base at the center),
-then also the *genomes* must have been read for 5 bases. If the
-*signatures* have been produced taking the transcription direction into
-account, then also the *genomes* must have been read taking the
-transcription direction into account, and so on.
-
-### Example: input data
-
-As a simple example, load a set of 15 Shiraishi-type signatures (object
-*signatures*) provided with this package. These signatures were obtained
-with the package `r Rpackage("pmsignature")` from a set of 435 tumor
-genomes with at least 100 somatic mutations from ten different tumor
-entities (data from Alexandrov et al. Nature 500:415-421, 2013; for the
-analysis, see our papers mentioned in Section 1.1):
+As a simple example, two subsampled bam files have been provided in the
+package, one representing alignments from a BulkRNA-seq experiment while
+the other representing a subsample of one of the processed outputs of a
+PARIS experiment, chosen given its presence of gapped reads with small
+"N" CIGAR operations. (data generated internally to the lab, full
+availability not yet granted; to have at least some partial background
+on the technique please refer to Zhang et al. Genome Research 2022
+<https://doi.org/10.1101/gr.275979.121> & Lu et al. Cell 2016
+<https://doi.org/10.1016/j.cell.2016.04.028>.)
 
 ```{r}
-# load the 15 Shiraishi signatures obtained from 
-# 435 tumor genomes from Alexandrov et al.
-sfile <- system.file("extdata",
-              "Alexandrov_PMID_23945592_435_tumors-pmsignature-15sig.Rdata", 
-              package="decompTumor2Sig")
-load(sfile)
-length(signatures)
-signatures[1]
+# load the reference genome
+library(BSgenome.Hsapiens.UCSC.hg38)
+ref_genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
+
+
+library(GenomicAlignments)
+# load example bam represnting a subset of a human brain Bulk RNA-seq experiment (GEO:GSE219444)
+# downloaded from ENCODE (https://www.encodeproject.org/files/ENCFF047UEJ/@@download/ENCFF047UEJ.bam) then subsetted via samtools view
+
+
+
+sys_bam <- system.file("extdata", "10k_RNAseq_subset.bam", package = "BamLiner")
+
+bam <- readGAlignments(sys_bam,
+                       param = ScanBamParam(what = c("seq","flag","qname")))
+
+
+
+# Showing the alignment of an arbitrarily chosen read
+read <- mcols(bam)$qname[1555]  
+extract_read_by_qname_and_show_alignment(bam, read, ref_genome)
+
+
+# M containing read 
+read <- mcols(bam)$qname[18]  
+extract_read_by_qname_and_show_alignment(bam, read, ref_genome)
+
+# S
+read <- mcols(bam)$qname[1]  
+extract_read_by_qname_and_show_alignment(bam, read, ref_genome)
+
+# D
+read <- mcols(bam)$qname[287]  
+extract_read_by_qname_and_show_alignment(bam, read, ref_genome)
+
+# I
+read <- mcols(bam)$qname[485]  
+extract_read_by_qname_and_show_alignment(bam, read, ref_genome)
+
+
+## example index values have been identified by means of: 
+# head(grep("D", bam@cigar))
+#
+#
+# # Showing the alignment of the first read that contains a Deletion
+# del_read_index <- head(grep("D", bam@cigar), n = 1)
+# read <- mcols(bam)$qname[del_read_index]  
+# extract_read_by_qname_and_show_alignment(bam, read, ref_genome)
+# 
+# 
+# # Showing the alignment of the first read that contains an Insertion
+# del_read_index <- head(grep("I", bam@cigar), n = 1)
+# read <- mcols(bam)$qname[del_read_index]  
+# extract_read_by_qname_and_show_alignment(bam, read, ref_genome)
 ```
-
-This loads an object *signatures* with 15 Shiraishi signatures for
-mutated subsequences of length 5 (five nucleotides with the mutated base
-at the center) and taking transcription direction into account.
-
-Now read the tumor genomes (object *genomes*) provided with this
-package, as described in Section 3.2.1:
 
 ```{r}
-# load the reference genome and the transcript annotation database
-refGenome <- BSgenome.Hsapiens.UCSC.hg19::BSgenome.Hsapiens.UCSC.hg19
-transcriptAnno <-
-           TxDb.Hsapiens.UCSC.hg19.knownGene::TxDb.Hsapiens.UCSC.hg19.knownGene
+# load the reference genome
+library(BSgenome.Hsapiens.UCSC.hg38)
+ref_genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
 
-# take six breast cancer genomes from Nik-Zainal et al (PMID: 22608084) 
-gfile <- system.file("extdata",
-                     "Nik-Zainal_PMID_22608084-VCF-convertedfromMPF.vcf.gz", 
-                     package="decompTumor2Sig")
 
-# read the cancer genomes in VCF format
-genomes <- readGenomesFromVCF(gfile, numBases=5, type="Shiraishi",
-                              trDir=TRUE, refGenome=refGenome,
-                              transcriptAnno=transcriptAnno, verbose=FALSE)
+# load example bam representing a subset of iPSC PARIS data generated internally by my lab at HT
+# processed as to contain only the primary alignments of non-chimeric yet gapped reads
+sys_gap1 <- system.file("extdata", "sampled_monoaligned.bam", package="BamLiner")
+
+gap1 <- readGAlignments(sys_gap1,
+                       param = ScanBamParam(what = c("seq","flag","qname")))
+
+
+
+# N containg read
+read <- mcols(gap1)$qname[17]
+extract_read_by_qname_and_show_alignment(gap1, read, ref_genome)
+
+
+
+
+# N & highlighted S
+read <- mcols(gap1)$qname[1]
+extract_read_by_qname_and_show_alignment(gap1, read, ref_genome)
+
+# without soft-clip highlighting
+read <- mcols(gap1)$qname[303]
+extract_read_by_qname_and_show_alignment(gap1, read, ref_genome, colored_softclips = FALSE)
+
+
+
+
+# outputing the list rather than the print
+read <- mcols(gap1)$qname[303]
+extract_read_by_qname_and_show_alignment(gap1, read, ref_genome, print_output = FALSE)
+
 ```
+
+------------------------------------------------------------------------
+
+# Internal functions {#internal_functions}
+
+IDK mabye add a section like this?
+
+Despite treated as internal functions for the scope of this package as
+to simplify the end-user experience in utilizing them as intended, the
+additional functions developed represent useful utils that can be still
+used by advanced users seeking more flexibility.
