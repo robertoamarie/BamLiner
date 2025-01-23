@@ -10,7 +10,12 @@
 #' @param cigar_ops A data frame representing the parsed CIGAR string with operations and counts.
 #' @return A character string representing the extracted reference sequence for the given read.
 #' @examples
-#' ref_genome <- "AGCTAGCTAGCT"
+#' library(Biostrings)
+#' library(BSgenome)
+#' library(GenomicRanges)
+#'
+#' ref_genome <- DNAStringSet("AGCTAGCTAGCT")
+#' names(ref_genome) <- "chr1"
 #' read_granges <- GRanges("chr1:1-9", strand="+")
 #' cigar <- "5M1I3M"
 #' cigar_ops <- data.frame(count = c(5, 1, 3),
@@ -22,16 +27,35 @@
 #'
 #' @importFrom GenomicRanges GRanges seqnames start end strand
 #' @importFrom IRanges IRanges
-#' @importFrom Biostrings getSeq reverseComplement
-
-
+#' @importFrom Biostrings DNAStringSet
+#' @importFrom BSgenome getSeq
 
 
 .fetch_ref_seq <- function(ref_genome, read_granges, cigar_ops) {
-  # Validate that the read_granges is not null
-  if (is.null(read_granges) || length(read_granges) == 0) {
-    stop("Invalid GRanges object provided.")
+  # Validate that the input is a GRanges object, that is not empty and that doesn't have NA values
+  if (!inherits(read_granges, "GRanges")) {
+    stop("The input must be a GRanges object.")
   }
+  if (length(read_granges) == 0) {
+    stop("The GRanges object must not be empty")
+  }
+
+
+  # Validate that the ref_genome is a DNAStringSet or compatible object
+  if (!inherits(ref_genome, c("DNAStringSet", "BSgenome"))) {
+    stop("The ref_genome must be a DNAStringSet or a BSgenome object.")
+  }
+
+
+  # Validate the cigar_ops data frame
+  if (!is.data.frame(cigar_ops)) {
+    stop("The cigar_ops must be a data frame.")
+  }
+  if (nrow(cigar_ops) == 0) {
+    stop("The cigar_ops data frame must not be empty.")
+  }
+
+
 
   # Adjust start and end positions based on soft clipping
   soft_clip_start <- ifelse(cigar_ops$operation[1] == "S", cigar_ops$count[1], 0)

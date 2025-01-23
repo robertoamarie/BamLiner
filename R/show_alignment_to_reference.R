@@ -10,6 +10,7 @@
 #' @param colored_softclips A boolean (default FALSE) indicating whether soft-clipped regions should be highlighted in red (if TRUE).
 #' @return A character string representing the aligned read sequence, with soft-clipped regions highlighted if requested.
 #' @examples
+#'
 #' ref_seq <- "AGCTAGCTA"
 #' read_seq <- "AGCTTGCTA"
 #' cigar <- "5M1I3M"
@@ -17,19 +18,35 @@
 #'                         operation = c("M", "I", "M"),
 #'                         stringsAsFactors = FALSE
 #'                         )
-#'
 #' BamLiner:::.show_alignment_to_reference(ref_seq, read_seq, cigar_ops, colored_softclips = TRUE)
-
-
-
-
-cigar_ops <- data.frame(
-  count = c(4, 1, 6),
-  operation = c("M", "I", "M"),
-  stringsAsFactors = FALSE
-)
+#'
 
 .show_alignment_to_reference <- function(ref_seq, read_seq, cigar_ops, colored_softclips = FALSE) {
+
+  # Validate that ref_seq is a non-empty character string
+  if (!is.character(ref_seq) || length(ref_seq) != 1 || nchar(ref_seq) == 0) {
+    stop("ref_seq must be a non-empty character string.")
+  }
+
+  # Validate that read_seq is a non-empty character string
+  if (!is.character(read_seq) || length(read_seq) != 1 || nchar(read_seq) == 0) {
+    stop("read_seq must be a non-empty character string.")
+  }
+
+  # Validate cigar_ops is a non-empty data frame
+  if (!is.data.frame(cigar_ops)) {
+    stop("cigar_ops must be a data frame.")
+  }
+  if (nrow(cigar_ops) == 0) {
+    stop("cigar_ops must not be empty.")
+  }
+
+  # Validate colored_softclips is a boolean
+  if (!is.logical(colored_softclips) || length(colored_softclips) != 1) {
+    stop("colored_softclips must be a single boolean value.")
+  }
+
+
   consumed_ref_seq <- ""
   consumed_read_seq <- ""
 

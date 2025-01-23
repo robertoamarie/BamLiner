@@ -37,7 +37,7 @@ extract_read_by_qname_and_show_alignment():\tab Main function\cr
 }
 }
 \author{
-Roberto Amarie, Politecnico di Milano & Universita degli Studi di Milano Statale \link{aut, cre}\cr
+Roberto Amarie, Politecnico di Milano & Universita degli Studi di Milano Statale\cr
 Maintainer: Roberto Amarie\cr
 E-Mail: \href{mailto:roberto.amarie@mail.polimi.it}{roberto.amarie@mail.polimi.it} or \href{mailto:roberto.amarie@studenti.unimi.it}{roberto.amarie@studenti.unimi.it} or \href{mailto:roberto.amarie@external.fht.org}{roberto.amarie@external.fht.org}
 }

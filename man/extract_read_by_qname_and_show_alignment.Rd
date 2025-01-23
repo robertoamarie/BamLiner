@@ -28,11 +28,25 @@ The function outputs a detailed string representation of the alignment and allow
 This can be useful for inspecting the alignment quality and understanding how specific reads align to the reference.
 }
 \examples{
-library(BSgenome.Hsapiens.UCSC.hg38)
-ref_genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
+# employing some Dummy BSGenome object and GAlignments object, for examples with real data look into the vignette of the package
+library(Biostrings)
+library(GenomicAlignments)
 
-bam <- readGAlignments("R_PROJCECT-BamLiner/data/10perc_subset.bam",
-                        param = ScanBamParam(what = c("seq","flag","mapq","qname")))
+ref_genome <- DNAStringSet("AGCTAGCTAGCT")
+names(ref_genome) <- "chr1"
 
-extract_read_by_qname_and_show_alignment(bam, "A00750:404:HMTM3DMXX:1:1102:19759:11913", ref_genome)
+bam <- GAlignments(
+            seqnames = Rle("chr1"),                 # Chromosome name
+            pos = 1,                                # Start position of alignment
+            cigar = "5M1I3M",                       # CIGAR string (10 matched bases)
+            strand = Rle(strand("+")),              # Strand of the alignment
+            seq = DNAStringSet("AGCTTGCTA"),        # The sequence
+            )
+mcols(bam)$flag <- 0                          # SAM flag
+mcols(bam)$qname <- "example_read_001"        # qname
+
+
+qname <- mcols(bam)$qname[1]
+
+extract_read_by_qname_and_show_alignment(bam, qname, ref_genome)
 }

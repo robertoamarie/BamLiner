@@ -14,20 +14,65 @@
 #' @param print_output A boolean (default TRUE) specifying whether to print the results to the console.
 #' @return A list containing the CIGAR string, the strand of the read, the reference sequence, and the aligned read sequence.
 #' @examples
-#' library(BSgenome.Hsapiens.UCSC.hg38)
-#' ref_genome <- BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38
+#' # employing some Dummy BSGenome object and GAlignments object, for examples with real data look into the vignette of the package
+#' library(Biostrings)
+#' library(GenomicAlignments)
 #'
-#' bam <- readGAlignments("R_PROJCECT-BamLiner/data/10perc_subset.bam",
-#'                         param = ScanBamParam(what = c("seq","flag","mapq","qname")))
+#' ref_genome <- DNAStringSet("AGCTAGCTAGCT")
+#' names(ref_genome) <- "chr1"
 #'
-#' extract_read_by_qname_and_show_alignment(bam, "A00750:404:HMTM3DMXX:1:1102:19759:11913", ref_genome)
+#' bam <- GAlignments(
+#'             seqnames = Rle("chr1"),                 # Chromosome name
+#'             pos = 1,                                # Start position of alignment
+#'             cigar = "5M1I3M",                       # CIGAR string (10 matched bases)
+#'             strand = Rle(strand("+")),              # Strand of the alignment
+#'             seq = DNAStringSet("AGCTTGCTA"),        # The sequence
+#'             )
+#' mcols(bam)$flag <- 0                          # SAM flag
+#' mcols(bam)$qname <- "example_read_001"        # qname
+#'
+#'
+#' qname <- mcols(bam)$qname[1]
+#'
+#' extract_read_by_qname_and_show_alignment(bam, qname, ref_genome)
 #' @export extract_read_by_qname_and_show_alignment
-#' @importFrom Biostrings reverseComplement
-#' @importFrom S4Vectors mcols
+#' @importFrom Biostrings DNAStringSet reverseComplement
+#' @importFrom S4Vectors Rle mcols mcols<-
 #' @importFrom GenomicRanges granges
+#' @importFrom GenomicAlignments GAlignments
+
+
 
 
 extract_read_by_qname_and_show_alignment <- function(bam, qname, ref_genome, colored_softclips = TRUE, print_output = TRUE) {
+
+
+  # Validate bam is a GAlignments object
+  if (!inherits(bam, "GAlignments")) {
+    stop("bam must be a GAlignments object.")
+  }
+
+  # Validate qname is a non-empty character string
+  if (!is.character(qname) || length(qname) != 1 || nchar(qname) == 0) {
+    stop("qname must be a non-empty character string.")
+  }
+
+  # Validate ref_genome is a DNAStringSet or similar object
+  if (!inherits(ref_genome,  c("DNAStringSet", "BSgenome"))) {
+    stop("ref_genome must be a DNAStringSet or similar object.")
+  }
+
+  # Validate colored_softclips is a boolean
+  if (!is.logical(colored_softclips) || length(colored_softclips) != 1) {
+    stop("colored_softclips must be a single boolean value.")
+  }
+
+  # Validate print_output is a boolean
+  if (!is.logical(print_output) || length(print_output) != 1) {
+    stop("print_output must be a single boolean value.")
+  }
+
+
   # Check if the qname exists in the BAM file
   qname_indices <- which(mcols(bam)$qname == qname)
 

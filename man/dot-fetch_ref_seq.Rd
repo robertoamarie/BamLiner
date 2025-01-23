@@ -22,5 +22,19 @@ for any soft-clipping present in the CIGAR string, which could affect the alignm
 The function ensures that the adjusted range of the reference sequence aligns correctly with the read sequence.
 }
 \examples{
+library(Biostrings)
+library(BSgenome)
+library(GenomicRanges)
+
+ref_genome <- DNAStringSet("AGCTAGCTAGCT")
+names(ref_genome) <- "chr1"
+read_granges <- GRanges("chr1:1-9", strand="+")
+cigar <- "5M1I3M"
+cigar_ops <- data.frame(count = c(5, 1, 3),
+                        operation = c("M", "I", "M"),
+                        stringsAsFactors = FALSE
+                        )
+
 BamLiner:::.fetch_ref_seq(ref_genome, read_granges, cigar_ops)
+
 }

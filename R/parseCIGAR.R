@@ -24,8 +24,24 @@
 
 
 .parseCIGAR <- function(cigar) {
-  # parsing cigar string
+  # validate string input
+  if (!is.character(cigar)){
+    stop("the input must be string")
+  }
+
+  # validate against empty strings
+  if (cigar == ""){
+    stop("the CIGAR string cannot be empty")
+  }
+
+  # parsing CIGAR string
   operations <- strsplit(cigar, "(?<=\\D)(?=\\d)", perl = TRUE)[[1]]
+
+  # validate CIGAR by its operations
+  invalid_ops <- operations[!grepl("^[0-9]+[MIDNSHP=X]$", operations)]
+  if (length(invalid_ops) > 0) {
+    stop("Invalid CIGAR, problematic operation: ", paste(invalid_ops, collapse = ", "))
+  }
 
   # generating output
   parsed <- data.frame(

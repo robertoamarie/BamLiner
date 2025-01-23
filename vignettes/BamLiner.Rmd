@@ -257,3 +257,28 @@ Despite treated as internal functions for the scope of this package as
 to simplify the end-user experience in utilizing them as intended, the
 additional functions developed represent useful utils that can be still
 used by advanced users seeking more flexibility.
+
+```{r, eval= FALSE}
+BamLiner:::.parseCIGAR()
+
+BamLiner:::.fetch_ref_seq()
+
+BamLiner:::.show_alignment_to_reference()
+```
+
+```{r}
+BamLiner:::.parseCIGAR("2S4M1I7M2D5H")
+```
+
+```{r}
+read <- mcols(bam)$qname[1555] 
+read_granges <- granges(bam[1555])
+cig_ops <-BamLiner:::.parseCIGAR("2S4M1I7M2D5H")
+
+
+BamLiner:::.fetch_ref_seq(ref_genome,
+                          read_granges,
+                          cig_ops)
+```
+
+

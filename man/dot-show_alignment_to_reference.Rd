@@ -23,5 +23,14 @@ A character string representing the aligned read sequence, with soft-clipped reg
 Soft-clipped regions can be optionally highlighted in red for better visualization.
 }
 \examples{
+
+ref_seq <- "AGCTAGCTA"
+read_seq <- "AGCTTGCTA"
+cigar <- "5M1I3M"
+cigar_ops <- data.frame(count = c(5, 1, 3),
+                        operation = c("M", "I", "M"),
+                        stringsAsFactors = FALSE
+                        )
 BamLiner:::.show_alignment_to_reference(ref_seq, read_seq, cigar_ops, colored_softclips = TRUE)
+
 }

@@ -35,8 +35,7 @@
 #'
 #' @name BamLiner-package
 #' @aliases BamLiner-package
-#' @author Roberto Amarie, Politecnico di Milano & Universita degli Studi di Milano Statale [aut, cre]\cr
+#' @author Roberto Amarie, Politecnico di Milano & Universita degli Studi di Milano Statale\cr
 #' Maintainer: Roberto Amarie\cr
 #' E-Mail: <roberto.amarie@@mail.polimi.it> or <roberto.amarie@@studenti.unimi.it> or <roberto.amarie@@external.fht.org>
-#' @seealso \link{author}, \link{creator}
 NULL
