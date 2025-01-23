@@ -120,5 +120,5 @@ test_that("Valid input does not raise errors", {
 
   qname <- mcols(bam)$qname[1]
 
-  expect_silent(extract_read_by_qname_and_show_alignment(bam, qname, ref_genome, colored_softclips = TRUE))
+  expect_output(extract_read_by_qname_and_show_alignment(bam, qname, ref_genome, colored_softclips = TRUE), "CIGAR:\\t 5M1I3M \\nstrand:\\t \\+ \\nRef:\\t AGCTA-GCT \\nRead:\\t AGCTAGGCT \\n")
 })
