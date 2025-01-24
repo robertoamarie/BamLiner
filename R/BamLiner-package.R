@@ -10,7 +10,7 @@
 #' \tabular{ll}{
 #' Package: \tab BamLiner\cr
 #' Type: \tab Package\cr
-#' Version: \tab 0.0.0.9000\cr
+#' Version: \tab 0.99.0\cr
 #' License: \tab GPL (>=2)\cr
 #' }
 #'

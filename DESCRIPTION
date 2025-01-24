@@ -2,18 +2,18 @@ Package: BamLiner
 Type: Package
 Title: Visualization of the alignment of a mapped read
 Description: This R package provides a function that extracts the primary alignment of a desired read and enables the visualization of its alignment along its reference sequence, as an useful useful quality control inspection tool. As to achieve this, the package also includes some internal functions for managing CIGAR operations, determining the reference sequence of the full read, as well as the recomputing the consumed read and reference sequences upon accounting for the CIGAR operations. 
-Depends: R(>= 4.0)
+Depends: R(>= 4.4.0)
 Imports: GenomicRanges, IRanges, Biostrings, S4Vectors, GenomicAlignments, BSgenome
 Suggests: knitr, rmarkdown, BiocStyle, testthat, BSgenome.Hsapiens.UCSC.hg38
 Encoding: UTF-8
-Version: 0.0.0.9000
+Version: 0.99.0
 License: GPL-2
 Authors@R: c(person("Roberto", "Amarie", email = "roberto.amarie@mail.polimi.it", role = c("aut", "cre")))
 URL: https://github.com/robertoamarie/BamLiner
 BugReports: https://github.com/robertoamarie/BamLiner/issues
 git_url: https://github.com/robertoamarie/BamLiner
 git_branch: main
-biocViews: Software, Sequencing, Alignment, Visualization, GenomicSequence, SequenceMatching, QualityControl
+biocViews: Software, Sequencing, Alignment, Visualization, SequenceMatching, QualityControl
 VignetteBuilder: knitr
 NeedsCompilation: no
 Roxygen: list(markdown = TRUE)

@@ -281,4 +281,12 @@ BamLiner:::.fetch_ref_seq(ref_genome,
                           cig_ops)
 ```
 
+------------------------------------------------------------------------
 
+# Session Info {#session-info}
+
+The following R session information was used to generate this vignette:
+
+```{r session-info}
+sessionInfo()
+```
